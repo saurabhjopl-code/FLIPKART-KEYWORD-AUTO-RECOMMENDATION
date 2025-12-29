@@ -1,6 +1,11 @@
-function renderBiddingHealthReport(data, root) {
+/* =========================================================
+   REPORT 6 – BIDDING HEALTH
+   Safe-wired version (no loader change required)
+   ========================================================= */
 
-  // ===== HEADER-AGNOSTIC VALUE RESOLVER =====
+function _renderReport6Bidding(data, root) {
+
+  // ---------- Header-agnostic value resolver ----------
   function getValueByContains(row, text) {
     const key = Object.keys(row).find(k =>
       k.replace(/\s+/g, " ")
@@ -11,10 +16,9 @@ function renderBiddingHealthReport(data, root) {
     return key ? Number(row[key]) || 0 : 0;
   }
 
-  // ===== BUILD BIDDING HEALTH ROWS =====
+  // ---------- Build rows ----------
   let rows = data
     .map(r => {
-
       const clicks = r.Clicks || 0;
       if (clicks <= 0) return null;
 
@@ -26,7 +30,6 @@ function renderBiddingHealthReport(data, root) {
         getValueByContains(r, "indirect revenue");
 
       const roi = adsSpend ? revenue / adsSpend : 0;
-
       const breakEvenCPC = revenue / clicks;
 
       let status = "Healthy";
@@ -49,10 +52,10 @@ function renderBiddingHealthReport(data, root) {
         _color: color
       };
     })
-    .filter(r => r !== null);
+    .filter(Boolean);
 
-  // Sort: most risky (overbid) first
-  rows.sort((a, b) => b["Average CPC"] - b["Break-even CPC"]);
+  // Sort: worst bids first
+  rows.sort((a, b) => (b["Average CPC"] - b["Break-even CPC"]));
 
   let visibleCount = 25;
 
@@ -66,12 +69,12 @@ function renderBiddingHealthReport(data, root) {
     </div>
 
     <div class="report-body">
-      <div id="bh-table-container"></div>
+      <div id="bh-table"></div>
       <div id="bh-controls" style="text-align:center;margin-top:12px;"></div>
     </div>
   `;
 
-  // ===== CSV EXPORT =====
+  // ---------- CSV Export ----------
   function exportCSV() {
     if (!rows.length) return;
     const headers = Object.keys(rows[0]).filter(k => !k.startsWith("_"));
@@ -87,9 +90,9 @@ function renderBiddingHealthReport(data, root) {
     link.click();
   }
 
-  // ===== RENDER TABLE =====
+  // ---------- Render ----------
   function renderTable() {
-    const c = card.querySelector("#bh-table-container");
+    const c = card.querySelector("#bh-table");
     const show = rows.slice(0, visibleCount);
 
     if (!rows.length) {
@@ -110,26 +113,43 @@ function renderBiddingHealthReport(data, root) {
             ${Object.keys(r)
               .filter(k => !k.startsWith("_"))
               .map(k => `
-                <td style="text-align:center;color:${k==="Status"?r._color:"inherit"}">
+                <td style="text-align:center;color:${k === "Status" ? r._color : "inherit"}">
                   ${r[k]}
                 </td>`).join("")}
           </tr>`).join("")}
       </table>
     `;
 
-    const ctrl = card.querySelector("#bh-controls");
-    ctrl.innerHTML = visibleCount >= rows.length
-      ? `<button onclick="exportCSV()">Export CSV</button>`
-      : `<button onclick="visibleCount+=25;renderTable()">Show More</button>
-         <button onclick="exportCSV()">Export CSV</button>`;
+    card.querySelector("#bh-controls").innerHTML =
+      visibleCount >= rows.length
+        ? `<button onclick="exportCSV()">Export CSV</button>`
+        : `<button onclick="visibleCount+=25;renderTable()">Show More</button>
+           <button onclick="exportCSV()">Export CSV</button>`;
   }
 
   renderTable();
 
-  // ✅ Expand / Collapse (consistent with other reports)
+  // Expand / collapse (existing global handler)
   card.querySelector(".report-header").onclick = function () {
     toggleByHeader(this);
   };
 
   root.appendChild(card);
+}
+
+/* =========================================================
+   SAFE ALIASES — DO NOT REMOVE
+   These ensure the loader can call ANY of these names
+   ========================================================= */
+
+function renderBiddingHealthReport(data, root) {
+  _renderReport6Bidding(data, root);
+}
+
+function renderBiddingReport(data, root) {
+  _renderReport6Bidding(data, root);
+}
+
+function renderReport6(data, root) {
+  _renderReport6Bidding(data, root);
 }
