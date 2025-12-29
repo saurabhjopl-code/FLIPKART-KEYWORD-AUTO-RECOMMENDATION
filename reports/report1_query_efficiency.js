@@ -90,18 +90,20 @@ function renderQueryEfficiency(data, root) {
     </div>
   `;
 
-  // ===== EXPORT FUNCTION =====
-  function exportExcel() {
+  // ===== CSV EXPORT FUNCTION =====
+  function exportCSV() {
     const headers = Object.keys(rows[0]).filter(k => k !== "_color");
-    const csv = [
+    const csvContent = [
       headers.join(","),
-      ...rows.map(r => headers.map(h => r[h]).join(","))
+      ...rows.map(r =>
+        headers.map(h => `"${r[h]}"`).join(",")
+      )
     ].join("\n");
 
-    const blob = new Blob([csv], { type: "application/vnd.ms-excel" });
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "Query_Performance_Efficiency.xlsx";
+    link.download = "Query_Performance_Efficiency.csv";
     link.click();
   }
 
@@ -135,7 +137,7 @@ function renderQueryEfficiency(data, root) {
       controls.innerHTML = `
         <button id="qp-top">Top 25</button>
         <button id="qp-collapse">Collapse All</button>
-        <button id="qp-export">Export</button>
+        <button id="qp-export">Export CSV</button>
       `;
 
       controls.querySelector("#qp-top").onclick = () => {
@@ -149,12 +151,12 @@ function renderQueryEfficiency(data, root) {
         card.querySelector(".toggle-icon").textContent = "▸";
       };
 
-      controls.querySelector("#qp-export").onclick = exportExcel;
+      controls.querySelector("#qp-export").onclick = exportCSV;
 
     } else {
       controls.innerHTML = `
         <button id="qp-show-more">Show More</button>
-        <button id="qp-export">Export</button>
+        <button id="qp-export">Export CSV</button>
       `;
 
       controls.querySelector("#qp-show-more").onclick = () => {
@@ -162,7 +164,7 @@ function renderQueryEfficiency(data, root) {
         renderTable();
       };
 
-      controls.querySelector("#qp-export").onclick = exportExcel;
+      controls.querySelector("#qp-export").onclick = exportCSV;
     }
   }
 
