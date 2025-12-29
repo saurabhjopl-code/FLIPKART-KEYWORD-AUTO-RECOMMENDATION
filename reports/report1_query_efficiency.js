@@ -1,35 +1,46 @@
 function renderQueryEfficiency(data, root) {
 
-  // ===== Campaign Summary Benchmarks =====
+  // ===== Campaign Summary Benchmarks (LOCKED) =====
   const totalViews = data.reduce((a, b) => a + (b.Views || 0), 0);
   const totalClicks = data.reduce((a, b) => a + (b.Clicks || 0), 0);
 
-  const totalUnits =
-    data.reduce((a, b) => a + (b[" Direct Units Sold"] || 0), 0) +
-    data.reduce((a, b) => a + (b["Indirect Units Sold"] || 0), 0);
+  const summaryTotalUnits = data.reduce(
+    (a, b) =>
+      a +
+      (b[" Direct Units Sold"] || 0) +
+      (b["Indirect Units Sold"] || 0),
+    0
+  );
 
   const summaryCTR = totalViews ? (totalClicks / totalViews) * 100 : 0;
-  const summaryCVR = totalClicks ? (totalUnits / totalClicks) * 100 : 0;
+  const summaryCVR = totalClicks
+    ? (summaryTotalUnits / totalClicks) * 100
+    : 0;
 
-  // ===== Prepare Rows =====
+  // ===== PREPARE ROWS (FIXED UNIT LOGIC) =====
   let rows = data.map(r => {
 
-    const adsSpend = r["SUM(cost)"] || 0;
+    const directUnits = r[" Direct Units Sold"] || 0;
+    const indirectUnits = r["Indirect Units Sold"] || 0;
 
-    const totalUnitsSold =
-      (r[" Direct Units Sold"] || 0) + (r["Indirect Units Sold"] || 0);
+    // ✅ FIX
+    const totalUnitsSold = directUnits + indirectUnits;
 
     const totalRevenue =
-      (r["Direct Revenue"] || 0) + (r["Indirect Revenue"] || 0);
+      (r["Direct Revenue"] || 0) +
+      (r["Indirect Revenue"] || 0);
 
     const ctr = r.Views ? (r.Clicks / r.Views) * 100 : 0;
     const cvr = r.Clicks ? (totalUnitsSold / r.Clicks) * 100 : 0;
 
-    const assistPct = totalRevenue
-      ? (r["Indirect Revenue"] / totalRevenue) * 100
+    // ✅ FIX
+    const assistPct = totalUnitsSold > 0
+      ? (indirectUnits / totalUnitsSold) * 100
       : 0;
 
-    // ===== Remarks Logic (LOCKED) =====
+    const adsSpend = r["SUM(cost)"] || 0;
+
+    // ===== REMARKS LOGIC (LOCKED) =====
     let remarks = "Still Safe";
     let color = "#f59e0b";
 
@@ -61,16 +72,16 @@ function renderQueryEfficiency(data, root) {
       "CVR %": cvr.toFixed(2),
       "Average Bid": (r["Average CPC"] || 0).toFixed(2),
       "Ads Spend": adsSpend.toFixed(0),
-      "Total Units Sold": totalUnitsSold,
+      "Total Units Sold": totalUnitsSold, // ✅ FIXED
       "Total Revenue": totalRevenue.toFixed(0),
-      "Assist %": assistPct.toFixed(2),
+      "Assist %": assistPct.toFixed(2),   // ✅ FIXED
       ROI: (r.ROI || 0).toFixed(2),
       Remarks: remarks,
       _color: color
     };
   });
 
-  // ===== Sort =====
+  // ===== SORT (LOCKED) =====
   rows.sort((a, b) => b.Views - a.Views);
 
   let visibleCount = 25;
@@ -90,24 +101,22 @@ function renderQueryEfficiency(data, root) {
     </div>
   `;
 
-  // ===== CSV EXPORT FUNCTION =====
+  // ===== CSV EXPORT (LOCKED) =====
   function exportCSV() {
     const headers = Object.keys(rows[0]).filter(k => k !== "_color");
-    const csvContent = [
+    const csv = [
       headers.join(","),
-      ...rows.map(r =>
-        headers.map(h => `"${r[h]}"`).join(",")
-      )
+      ...rows.map(r => headers.map(h => `"${r[h]}"`).join(","))
     ].join("\n");
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = "Query_Performance_Efficiency.csv";
     link.click();
   }
 
-  // ===== Render Table =====
+  // ===== RENDER TABLE =====
   function renderTable() {
     const container = card.querySelector("#qp-table-container");
     const displayRows = rows.slice(0, visibleCount);
@@ -115,9 +124,10 @@ function renderQueryEfficiency(data, root) {
     container.innerHTML = `
       <table>
         <tr>
-          ${Object.keys(rows[0])
+          ${Object.keys(displayRows[0])
             .filter(k => k !== "_color")
-            .map(h => `<th style="text-align:center">${h}</th>`).join("")}
+            .map(h => `<th style="text-align:center">${h}</th>`)
+            .join("")}
         </tr>
         ${displayRows.map(r => `
           <tr>
