@@ -1,32 +1,25 @@
-function renderCampaignReport(data, root) {
-  const map = {};
-  data.forEach(r => {
-    const k = r["Campaign Name"];
-    map[k] ??= { rev: 0, cost: 0 };
-    map[k].rev += r["Direct Revenue"];
-    map[k].cost += r["SUM(cost)"];
-  });
+function renderCampaignSummary(data, root) {
+  const totalClicks = data.reduce((a, b) => a + b.Clicks, 0);
+  const totalCost = data.reduce((a, b) => a + b["SUM(cost)"], 0);
+  const totalRevenue = data.reduce((a, b) => a + b["Direct Revenue"], 0);
 
   const c = document.createElement("div");
   c.className = "report-card";
   c.innerHTML = `
     <div class="report-header">
-      <div>7️⃣ Campaign Contribution</div>
-      <span class="toggle-icon">▸</span>
+      <div>📌 Campaign Summary</div>
+      <span class="toggle-icon">▾</span>
     </div>
-    <div class="report-body">
+    <div class="report-body" style="display:block">
       <table>
-        <tr><th>Campaign</th><th>Revenue</th><th>Cost</th></tr>
-        ${Object.entries(map).map(([k, v]) => `
-          <tr>
-            <td>${k}</td>
-            <td>₹${v.rev}</td>
-            <td>₹${v.cost}</td>
-          </tr>`).join("")}
+        <tr><th>Total Clicks</th><th>Total Cost</th><th>Direct Revenue</th><th>ROI</th></tr>
+        <tr>
+          <td>${totalClicks}</td>
+          <td>₹${totalCost}</td>
+          <td>₹${totalRevenue}</td>
+          <td>${(totalRevenue / totalCost).toFixed(2)}</td>
+        </tr>
       </table>
     </div>`;
-  c.querySelector(".report-header").onclick = function () {
-    toggleByHeader(this);
-  };
   root.appendChild(c);
 }
