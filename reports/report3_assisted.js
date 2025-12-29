@@ -16,10 +16,9 @@ function renderAssistedReport(data, root) {
 
       const directUnits = getValueByContains(r, "direct units sold");
       const indirectUnits = getValueByContains(r, "indirect units sold");
+      const totalUnits = directUnits + indirectUnits;
 
       const indirectRevenue = getValueByContains(r, "indirect revenue");
-
-      const totalUnits = directUnits + indirectUnits;
 
       const ctr = views ? (clicks / views) * 100 : 0;
       const cvr = clicks ? (totalUnits / clicks) * 100 : 0;
@@ -53,7 +52,6 @@ function renderAssistedReport(data, root) {
         _indirectRevenue: indirectRevenue
       };
     })
-    // 🔒 HARD FILTER (LOCKED)
     .filter(r => r._indirectRevenue > 0);
 
   rows.sort((a, b) => b["Assist %"] - a["Assist %"]);
@@ -90,26 +88,31 @@ function renderAssistedReport(data, root) {
 
   function renderTable() {
     const c = card.querySelector("#as-table-container");
-    const rowsToShow = rows.slice(0, visibleCount);
+    const show = rows.slice(0, visibleCount);
 
     c.innerHTML = `
       <table>
-        <tr>${Object.keys(rowsToShow[0]).filter(k=>!k.startsWith("_"))
+        <tr>${Object.keys(show[0]).filter(k=>!k.startsWith("_"))
           .map(h=>`<th style="text-align:center">${h}</th>`).join("")}</tr>
-        ${rowsToShow.map(r=>`
+        ${show.map(r=>`
           <tr>${Object.keys(r).filter(k=>!k.startsWith("_"))
             .map(k=>`<td style="text-align:center;color:${k==="Remarks"?r._color:"inherit"}">${r[k]}</td>`).join("")}
           </tr>`).join("")}
       </table>
     `;
 
-    const ctrl = card.querySelector("#as-controls");
-    ctrl.innerHTML = visibleCount >= rows.length
-      ? `<button onclick="(${exportCSV.toString()})()">Export CSV</button>`
-      : `<button onclick="visibleCount+=25;renderTable()">Show More</button>
-         <button onclick="(${exportCSV.toString()})()">Export CSV</button>`;
+    card.querySelector("#as-controls").innerHTML = `
+      <button onclick="visibleCount+=25;renderTable()">Show More</button>
+      <button onclick="exportCSV()">Export CSV</button>
+    `;
   }
 
   renderTable();
+
+  // ✅ RESTORED EXPAND / COLLAPSE
+  card.querySelector(".report-header").onclick = function () {
+    toggleByHeader(this);
+  };
+
   root.appendChild(card);
 }
