@@ -1,12 +1,15 @@
-function renderQueryEfficiency(data, root){
+function renderQueryEfficiency(data, root) {
   const c = document.createElement("div");
-  c.className="report-card";
-  c.innerHTML=`
-    <div class="report-header">1️⃣ Query Performance Efficiency</div>
+  c.className = "report-card";
+  c.innerHTML = `
+    <div class="report-header">
+      <div>1️⃣ Query Performance Efficiency</div>
+      <span class="toggle-icon">▸</span>
+    </div>
     <div class="report-body">
       <table>
         <tr><th>Query</th><th>Clicks</th><th>CVR %</th><th>RPC</th></tr>
-        ${data.map(r=>`
+        ${data.map(r => `
           <tr>
             <td>${r.Query}</td>
             <td>${r.Clicks}</td>
@@ -15,6 +18,8 @@ function renderQueryEfficiency(data, root){
           </tr>`).join("")}
       </table>
     </div>`;
-  c.querySelector(".report-header").onclick=()=>toggle(c);
+  c.querySelector(".report-header").onclick = function () {
+    toggleByHeader(this);
+  };
   root.appendChild(c);
 }
