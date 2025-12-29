@@ -1,6 +1,5 @@
 function renderQueryEfficiency(data, root) {
 
-  // ===== HELPER: FIND COLUMN BY PARTIAL NAME =====
   function getValueByContains(row, text) {
     const key = Object.keys(row).find(k =>
       k.replace(/\s+/g, " ").trim().toLowerCase()
@@ -24,12 +23,11 @@ function renderQueryEfficiency(data, root) {
     ? (summaryTotalUnits / totalClicks) * 100
     : 0;
 
-  // ===== PREPARE ROWS (FIXED FOR REAL) =====
+  // ===== PREPARE ROWS (LOCKED LOGIC) =====
   let rows = data.map(r => {
 
     const directUnits = getValueByContains(r, "direct units sold");
     const indirectUnits = getValueByContains(r, "indirect units sold");
-
     const totalUnitsSold = directUnits + indirectUnits;
 
     const totalRevenue =
@@ -45,7 +43,6 @@ function renderQueryEfficiency(data, root) {
 
     const adsSpend = getValueByContains(r, "cost");
 
-    // ===== REMARKS LOGIC (LOCKED) =====
     let remarks = "Still Safe";
     let color = "#f59e0b";
 
@@ -75,16 +72,15 @@ function renderQueryEfficiency(data, root) {
       "CVR %": cvr.toFixed(2),
       "Average Bid": (r["Average CPC"] || 0).toFixed(2),
       "Ads Spend": adsSpend.toFixed(0),
-      "Total Units Sold": totalUnitsSold,      // ✅ NOW CORRECT
+      "Total Units Sold": totalUnitsSold,
       "Total Revenue": totalRevenue.toFixed(0),
-      "Assist %": assistPct.toFixed(2),        // ✅ NOW CORRECT
+      "Assist %": assistPct.toFixed(2),
       ROI: (r.ROI || 0).toFixed(2),
       Remarks: remarks,
       _color: color
     };
   });
 
-  // ===== SORT (LOCKED) =====
   rows.sort((a, b) => b.Views - a.Views);
 
   let visibleCount = 25;
@@ -142,19 +138,18 @@ function renderQueryEfficiency(data, root) {
     `;
 
     const controls = card.querySelector("#qp-controls");
-
-    if (visibleCount >= rows.length) {
-      controls.innerHTML = `
-        <button onclick="(${exportCSV.toString()})()">Export CSV</button>
-      `;
-    } else {
-      controls.innerHTML = `
-        <button onclick="visibleCount+=25;renderTable()">Show More</button>
-        <button onclick="(${exportCSV.toString()})()">Export CSV</button>
-      `;
-    }
+    controls.innerHTML = `
+      <button onclick="visibleCount+=25;renderTable()">Show More</button>
+      <button onclick="exportCSV()">Export CSV</button>
+    `;
   }
 
   renderTable();
+
+  // ✅ RESTORED — THIS WAS MISSING
+  card.querySelector(".report-header").onclick = function () {
+    toggleByHeader(this);
+  };
+
   root.appendChild(card);
 }
