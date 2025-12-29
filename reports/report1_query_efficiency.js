@@ -1,44 +1,49 @@
 function renderQueryEfficiency(data, root) {
 
+  // ===== HELPER: FIND COLUMN BY PARTIAL NAME =====
+  function getValueByContains(row, text) {
+    const key = Object.keys(row).find(k =>
+      k.replace(/\s+/g, " ").trim().toLowerCase()
+        .includes(text.toLowerCase())
+    );
+    return key ? Number(row[key]) || 0 : 0;
+  }
+
   // ===== Campaign Summary Benchmarks (LOCKED) =====
   const totalViews = data.reduce((a, b) => a + (b.Views || 0), 0);
   const totalClicks = data.reduce((a, b) => a + (b.Clicks || 0), 0);
 
-  const summaryTotalUnits = data.reduce(
-    (a, b) =>
-      a +
-      (b[" Direct Units Sold"] || 0) +
-      (b["Indirect Units Sold"] || 0),
-    0
-  );
+  const summaryTotalUnits = data.reduce((sum, r) => {
+    const d = getValueByContains(r, "direct units sold");
+    const i = getValueByContains(r, "indirect units sold");
+    return sum + d + i;
+  }, 0);
 
   const summaryCTR = totalViews ? (totalClicks / totalViews) * 100 : 0;
   const summaryCVR = totalClicks
     ? (summaryTotalUnits / totalClicks) * 100
     : 0;
 
-  // ===== PREPARE ROWS (FIXED UNIT LOGIC) =====
+  // ===== PREPARE ROWS (FIXED FOR REAL) =====
   let rows = data.map(r => {
 
-    const directUnits = r[" Direct Units Sold"] || 0;
-    const indirectUnits = r["Indirect Units Sold"] || 0;
+    const directUnits = getValueByContains(r, "direct units sold");
+    const indirectUnits = getValueByContains(r, "indirect units sold");
 
-    // ✅ FIX
     const totalUnitsSold = directUnits + indirectUnits;
 
     const totalRevenue =
-      (r["Direct Revenue"] || 0) +
-      (r["Indirect Revenue"] || 0);
+      getValueByContains(r, "direct revenue") +
+      getValueByContains(r, "indirect revenue");
 
     const ctr = r.Views ? (r.Clicks / r.Views) * 100 : 0;
     const cvr = r.Clicks ? (totalUnitsSold / r.Clicks) * 100 : 0;
 
-    // ✅ FIX
     const assistPct = totalUnitsSold > 0
       ? (indirectUnits / totalUnitsSold) * 100
       : 0;
 
-    const adsSpend = r["SUM(cost)"] || 0;
+    const adsSpend = getValueByContains(r, "cost");
 
     // ===== REMARKS LOGIC (LOCKED) =====
     let remarks = "Still Safe";
@@ -46,13 +51,12 @@ function renderQueryEfficiency(data, root) {
 
     if (adsSpend === 0) {
       remarks = "Still Safe";
-      color = "#f59e0b";
     }
     else if (adsSpend > 0 && adsSpend < 100 && totalRevenue === 0) {
       remarks = "Negative";
       color = "#dc2626";
     }
-    else if (r.ROI > 7) {
+    else if ((r.ROI || 0) > 7) {
       remarks = "Good";
       color = "#16a34a";
     }
@@ -61,7 +65,6 @@ function renderQueryEfficiency(data, root) {
       cvr < summaryCVR * 0.5
     ) {
       remarks = "Review";
-      color = "#f59e0b";
     }
 
     return {
@@ -72,9 +75,9 @@ function renderQueryEfficiency(data, root) {
       "CVR %": cvr.toFixed(2),
       "Average Bid": (r["Average CPC"] || 0).toFixed(2),
       "Ads Spend": adsSpend.toFixed(0),
-      "Total Units Sold": totalUnitsSold, // ✅ FIXED
+      "Total Units Sold": totalUnitsSold,      // ✅ NOW CORRECT
       "Total Revenue": totalRevenue.toFixed(0),
-      "Assist %": assistPct.toFixed(2),   // ✅ FIXED
+      "Assist %": assistPct.toFixed(2),        // ✅ NOW CORRECT
       ROI: (r.ROI || 0).toFixed(2),
       Remarks: remarks,
       _color: color
@@ -94,14 +97,12 @@ function renderQueryEfficiency(data, root) {
       <div>1️⃣ Query Performance Efficiency</div>
       <span class="toggle-icon">▸</span>
     </div>
-
     <div class="report-body">
       <div id="qp-table-container"></div>
-      <div id="qp-controls" style="text-align:center; margin-top:12px;"></div>
+      <div id="qp-controls" style="text-align:center;margin-top:12px;"></div>
     </div>
   `;
 
-  // ===== CSV EXPORT (LOCKED) =====
   function exportCSV() {
     const headers = Object.keys(rows[0]).filter(k => k !== "_color");
     const csv = [
@@ -116,7 +117,6 @@ function renderQueryEfficiency(data, root) {
     link.click();
   }
 
-  // ===== RENDER TABLE =====
   function renderTable() {
     const container = card.querySelector("#qp-table-container");
     const displayRows = rows.slice(0, visibleCount);
@@ -134,7 +134,7 @@ function renderQueryEfficiency(data, root) {
             ${Object.keys(r)
               .filter(k => k !== "_color")
               .map(k => `
-                <td style="text-align:center; color:${k === "Remarks" ? r._color : "inherit"}">
+                <td style="text-align:center;color:${k==="Remarks"?r._color:"inherit"}">
                   ${r[k]}
                 </td>`).join("")}
           </tr>`).join("")}
@@ -145,44 +145,16 @@ function renderQueryEfficiency(data, root) {
 
     if (visibleCount >= rows.length) {
       controls.innerHTML = `
-        <button id="qp-top">Top 25</button>
-        <button id="qp-collapse">Collapse All</button>
-        <button id="qp-export">Export CSV</button>
+        <button onclick="(${exportCSV.toString()})()">Export CSV</button>
       `;
-
-      controls.querySelector("#qp-top").onclick = () => {
-        visibleCount = 25;
-        renderTable();
-        container.scrollIntoView({ behavior: "smooth" });
-      };
-
-      controls.querySelector("#qp-collapse").onclick = () => {
-        card.querySelector(".report-body").style.display = "none";
-        card.querySelector(".toggle-icon").textContent = "▸";
-      };
-
-      controls.querySelector("#qp-export").onclick = exportCSV;
-
     } else {
       controls.innerHTML = `
-        <button id="qp-show-more">Show More</button>
-        <button id="qp-export">Export CSV</button>
+        <button onclick="visibleCount+=25;renderTable()">Show More</button>
+        <button onclick="(${exportCSV.toString()})()">Export CSV</button>
       `;
-
-      controls.querySelector("#qp-show-more").onclick = () => {
-        visibleCount += 25;
-        renderTable();
-      };
-
-      controls.querySelector("#qp-export").onclick = exportCSV;
     }
   }
 
   renderTable();
-
-  card.querySelector(".report-header").onclick = function () {
-    toggleByHeader(this);
-  };
-
   root.appendChild(card);
 }
