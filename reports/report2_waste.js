@@ -1,6 +1,6 @@
 function renderWasteReport(data, root) {
 
-  // ===== FILTER: ONLY HARD WASTE =====
+  // ===== BUILD + FILTER HARD WASTE ROWS =====
   let rows = data
     .map(r => {
 
@@ -23,30 +23,47 @@ function renderWasteReport(data, root) {
         ? (indirectUnits / totalUnitsSold) * 100
         : 0;
 
-      const roi = r.ROI || 0;
-
       return {
         Keyword: r.Query,
         Views: views,
         Clicks: clicks,
-        "CTR %": ctr.toFixed(2),
-        "CVR %": cvr.toFixed(2),
-        "Ads Spend": adsSpend.toFixed(0),
+        "CTR %": ctr,
+        "CVR %": cvr,
+        "Ads Spend": adsSpend,
         "Units Sold": totalUnitsSold,
-        Revenue: totalRevenue.toFixed(0),
-        ROI: roi.toFixed(2),
-        "Assist %": assistPct.toFixed(2),
+        Revenue: totalRevenue,
+        ROI: r.ROI || 0,
+        "Assist %": assistPct,
         Action: "Bad",
-        _color: "#dc2626", // Red
         _adsSpend: adsSpend,
         _revenue: totalRevenue
       };
     })
-    // 🔒 HARD FILTER
-    .filter(r => r._adsSpend < 100 && r._revenue === 0);
+    // 🔒 HARD FILTER (FINAL)
+    .filter(r =>
+      r._adsSpend > 0 &&
+      r._adsSpend < 100 &&
+      r._revenue === 0
+    );
 
-  // ===== Sort: Highest Spend First =====
+  // ===== SORT: HIGHEST SPEND FIRST =====
   rows.sort((a, b) => b["Ads Spend"] - a["Ads Spend"]);
+
+  // ===== SUMMARY CALCULATION =====
+  const summary = rows.reduce((acc, r) => {
+    acc.views += r.Views;
+    acc.clicks += r.Clicks;
+    acc.spend += r["Ads Spend"];
+    return acc;
+  }, { views: 0, clicks: 0, spend: 0 });
+
+  const summaryCTR = summary.views
+    ? (summary.clicks / summary.views) * 100
+    : 0;
+
+  const summaryCVR = summary.clicks
+    ? 0
+    : 0;
 
   let visibleCount = 25;
 
@@ -60,6 +77,26 @@ function renderWasteReport(data, root) {
     </div>
 
     <div class="report-body">
+
+      <!-- SUMMARY TABLE -->
+      <table style="margin-bottom:16px;">
+        <tr>
+          <th style="text-align:center">Views</th>
+          <th style="text-align:center">Clicks</th>
+          <th style="text-align:center">CTR %</th>
+          <th style="text-align:center">CVR %</th>
+          <th style="text-align:center">Ads Spend (Possible Saving)</th>
+        </tr>
+        <tr>
+          <td style="text-align:center">${summary.views}</td>
+          <td style="text-align:center">${summary.clicks}</td>
+          <td style="text-align:center">${summaryCTR.toFixed(2)}%</td>
+          <td style="text-align:center">${summaryCVR.toFixed(2)}%</td>
+          <td style="text-align:center">₹${summary.spend.toFixed(0)}</td>
+        </tr>
+      </table>
+
+      <!-- DETAIL TABLE -->
       <div id="wa-table-container"></div>
       <div id="wa-controls" style="text-align:center; margin-top:12px;"></div>
     </div>
@@ -69,10 +106,7 @@ function renderWasteReport(data, root) {
   function exportCSV() {
     if (rows.length === 0) return;
 
-    const headers = Object.keys(rows[0]).filter(
-      k => !k.startsWith("_")
-    );
-
+    const headers = Object.keys(rows[0]).filter(k => !k.startsWith("_"));
     const csv = [
       headers.join(","),
       ...rows.map(r => headers.map(h => `"${r[h]}"`).join(","))
@@ -85,7 +119,7 @@ function renderWasteReport(data, root) {
     link.click();
   }
 
-  // ===== Render Table =====
+  // ===== RENDER DETAIL TABLE =====
   function renderTable() {
     const container = card.querySelector("#wa-table-container");
     const displayRows = rows.slice(0, visibleCount);
@@ -110,8 +144,8 @@ function renderWasteReport(data, root) {
             ${Object.keys(r)
               .filter(k => !k.startsWith("_"))
               .map(k => `
-                <td style="text-align:center; color:${k === "Action" ? r._color : "inherit"}">
-                  ${r[k]}
+                <td style="text-align:center; color:${k === "Action" ? "#dc2626" : "inherit"}">
+                  ${typeof r[k] === "number" ? r[k].toFixed(0) : r[k]}
                 </td>`).join("")}
           </tr>
         `).join("")}
