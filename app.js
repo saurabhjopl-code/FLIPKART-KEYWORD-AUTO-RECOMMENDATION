@@ -1,13 +1,12 @@
-document.getElementById("csvFile").onchange = e => {
-  const r = new FileReader();
-  r.onload = () => loadCSV(r.result);
-  r.readAsText(e.target.files[0]);
-};
+document.getElementById("csvFile").addEventListener("change", e => {
+  const reader = new FileReader();
+  reader.onload = () => loadCSV(reader.result);
+  reader.readAsText(e.target.files[0]);
+});
 
-function loadCSV(text){
-  const lines = text.split("\n").filter(x => x.trim());
+function loadCSV(text) {
+  const lines = text.split("\n").filter(l => l.trim());
 
-  // REPORT PERIOD
   document.getElementById("reportPeriod").innerText =
     `Report Period: ${lines[0]} → ${lines[1]}`;
 
@@ -15,17 +14,13 @@ function loadCSV(text){
   const rows = lines.slice(3).map(l => {
     const v = l.split(",");
     const o = {};
-    headers.forEach((h,i)=>o[h.trim()] = isNaN(v[i]) ? v[i] : +v[i]);
+    headers.forEach((h, i) => o[h.trim()] = isNaN(v[i]) ? v[i] : +v[i]);
     return o;
   });
 
-  // 🔹 CAMPAIGN NAME (ID) LOGIC
   const campaignSet = new Map();
   rows.forEach(r => {
-    campaignSet.set(
-      `${r["Campaign Name"]} (${r["Campaign ID"]})`,
-      true
-    );
+    campaignSet.set(`${r["Campaign Name"]} (${r["Campaign ID"]})`, true);
   });
 
   document.getElementById("campaignInfo").innerText =
@@ -33,7 +28,6 @@ function loadCSV(text){
       ? `Campaign: ${[...campaignSet.keys()][0]}`
       : "Campaign: Multiple Campaigns";
 
-  // RENDER REPORTS
   const root = document.getElementById("reports");
   root.innerHTML = "";
 
@@ -49,4 +43,9 @@ function loadCSV(text){
     renderRevenueQualityReport,
     renderScorecard
   ].forEach(fn => fn(rows, root));
+
+  setTimeout(() => {
+    const first = document.querySelector(".report-header");
+    if (first) toggleByHeader(first);
+  }, 50);
 }
