@@ -1,45 +1,16 @@
-body {
-  font-family: Inter, Arial;
-  background: #f5f7fb;
-  padding: 20px;
-}
-
 header {
   text-align: center;
   margin-bottom: 20px;
 }
 
-.report-card {
-  background: white;
-  border-radius: 10px;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+#reportPeriod {
+  font-size: 14px;
+  color: #374151;
 }
 
-.report-header {
-  padding: 14px 16px;
+#campaignInfo {
+  font-size: 14px;
   font-weight: 600;
-  cursor: pointer;
-  background: #eef2ff;
-  border-radius: 10px 10px 0 0;
+  color: #1f2937;
+  margin-top: 4px;
 }
-
-.report-body {
-  display: none;
-  padding: 16px;
-}
-
-.report-body table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.report-body th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  font-size: 13px;
-}
-
-.bad { color: #dc2626; }
-.good { color: #16a34a; }
-.warn { color: #ca8a04; }
