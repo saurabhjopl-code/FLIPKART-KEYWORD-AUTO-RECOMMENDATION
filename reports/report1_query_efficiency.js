@@ -1,8 +1,7 @@
 function renderQueryEfficiency(data, root){
-  const card = document.createElement("div");
-  card.className = "report-card";
-
-  card.innerHTML = `
+  const c = document.createElement("div");
+  c.className="report-card";
+  c.innerHTML=`
     <div class="report-header">1️⃣ Query Performance Efficiency</div>
     <div class="report-body">
       <table>
@@ -15,17 +14,7 @@ function renderQueryEfficiency(data, root){
             <td>₹${rpc(r).toFixed(2)}</td>
           </tr>`).join("")}
       </table>
-    </div>
-  `;
-
-  card.querySelector(".report-header").onclick =
-    () => toggle(card);
-
-  root.appendChild(card);
+    </div>`;
+  c.querySelector(".report-header").onclick=()=>toggle(c);
+  root.appendChild(c);
 }
-
-function toggle(card){
-  const b = card.querySelector(".report-body");
-  b.style.display = b.style.display === "block" ? "none" : "block";
-}
-
