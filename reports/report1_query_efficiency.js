@@ -12,7 +12,7 @@ function renderQueryEfficiency(data, root) {
   const summaryCVR = totalClicks ? (totalUnits / totalClicks) * 100 : 0;
 
   // ===== Prepare Rows =====
-  const rows = data.map(r => {
+  let rows = data.map(r => {
 
     const totalUnitsSold =
       (r[" Direct Units Sold"] || 0) + (r["Indirect Units Sold"] || 0);
@@ -28,19 +28,19 @@ function renderQueryEfficiency(data, root) {
       : 0;
 
     let remarks = "Review";
-    let color = "#f59e0b"; // Amber (default)
+    let color = "#f59e0b"; // Amber
 
-    // 🚨 HARD NEGATIVE RULE (OVERRIDES EVERYTHING)
+    // 🚨 HARD NEGATIVE (highest priority)
     if (r["SUM(cost)"] < 100 && totalRevenue === 0) {
       remarks = "Negative";
       color = "#dc2626"; // Red
     }
-    // ✅ GOOD RULE
+    // ✅ GOOD
     else if (r.ROI > 7) {
       remarks = "Good";
       color = "#16a34a"; // Green
     }
-    // ⚠️ REVIEW RULE (ANY ONE BELOW 50%)
+    // ⚠️ REVIEW (ANY ONE below 50%)
     else if (
       ctr < summaryCTR * 0.5 ||
       cvr < summaryCVR * 0.5
@@ -69,7 +69,10 @@ function renderQueryEfficiency(data, root) {
   // ===== Sort: Views High → Low =====
   rows.sort((a, b) => b.views - a.views);
 
-  // ===== Render =====
+  // ===== Pagination State =====
+  let visibleCount = 25;
+
+  // ===== Render Card =====
   const card = document.createElement("div");
   card.className = "report-card";
 
@@ -80,6 +83,20 @@ function renderQueryEfficiency(data, root) {
     </div>
 
     <div class="report-body">
+      <div id="qp-table-container"></div>
+
+      <div id="qp-controls" style="text-align:center; margin-top:12px;">
+        <button id="qp-show-more">Show More</button>
+      </div>
+    </div>
+  `;
+
+  // ===== Render Table Function =====
+  function renderTable() {
+    const container = card.querySelector("#qp-table-container");
+    const displayRows = rows.slice(0, visibleCount);
+
+    container.innerHTML = `
       <table>
         <tr>
           <th style="text-align:center">Keyword</th>
@@ -96,7 +113,7 @@ function renderQueryEfficiency(data, root) {
           <th style="text-align:center">Remarks</th>
         </tr>
 
-        ${rows.map(r => `
+        ${displayRows.map(r => `
           <tr>
             <td style="text-align:center">${r.keyword}</td>
             <td style="text-align:center">${r.views}</td>
@@ -115,9 +132,40 @@ function renderQueryEfficiency(data, root) {
           </tr>
         `).join("")}
       </table>
-    </div>
-  `;
+    `;
 
+    const controls = card.querySelector("#qp-controls");
+
+    // End-of-list controls
+    if (visibleCount >= rows.length) {
+      controls.innerHTML = `
+        <button id="qp-top">Top 25</button>
+        <button id="qp-collapse">Collapse All</button>
+      `;
+
+      controls.querySelector("#qp-top").onclick = () => {
+        visibleCount = 25;
+        renderTable();
+        container.scrollIntoView({ behavior: "smooth" });
+      };
+
+      controls.querySelector("#qp-collapse").onclick = () => {
+        card.querySelector(".report-body").style.display = "none";
+        card.querySelector(".toggle-icon").textContent = "▸";
+      };
+    } else {
+      controls.innerHTML = `<button id="qp-show-more">Show More</button>`;
+      controls.querySelector("#qp-show-more").onclick = () => {
+        visibleCount += 25;
+        renderTable();
+      };
+    }
+  }
+
+  // Initial render
+  renderTable();
+
+  // Expand / collapse wiring
   card.querySelector(".report-header").onclick = function () {
     toggleByHeader(this);
   };
