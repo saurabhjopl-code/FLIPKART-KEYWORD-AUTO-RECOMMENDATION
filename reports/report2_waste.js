@@ -1,13 +1,16 @@
-function renderWasteReport(data, root){
-  const rows = data.filter(r=>r.Clicks>=30 && r[" Direct Units Sold"]===0);
-  const c=document.createElement("div");
-  c.className="report-card";
-  c.innerHTML=`
-    <div class="report-header">2️⃣ Waste Analysis</div>
+function renderWasteReport(data, root) {
+  const rows = data.filter(r => r.Clicks >= 30 && r[" Direct Units Sold"] === 0);
+  const c = document.createElement("div");
+  c.className = "report-card";
+  c.innerHTML = `
+    <div class="report-header">
+      <div>2️⃣ Waste Analysis</div>
+      <span class="toggle-icon">▸</span>
+    </div>
     <div class="report-body">
       <table>
         <tr><th>Query</th><th>Clicks</th><th>Cost</th></tr>
-        ${rows.map(r=>`
+        ${rows.map(r => `
           <tr>
             <td>${r.Query}</td>
             <td>${r.Clicks}</td>
@@ -15,7 +18,8 @@ function renderWasteReport(data, root){
           </tr>`).join("")}
       </table>
     </div>`;
-  c.querySelector(".report-header").onclick=()=>toggle(c);
+  c.querySelector(".report-header").onclick = function () {
+    toggleByHeader(this);
+  };
   root.appendChild(c);
 }
-
