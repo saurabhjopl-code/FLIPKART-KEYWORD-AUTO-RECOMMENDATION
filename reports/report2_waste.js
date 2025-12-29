@@ -8,7 +8,6 @@ function renderWasteReport(data, root) {
     return key ? Number(row[key]) || 0 : 0;
   }
 
-  // ===== BUILD + FILTER HARD WASTE ROWS (LOCKED LOGIC) =====
   let rows = data
     .map(r => {
 
@@ -27,10 +26,6 @@ function renderWasteReport(data, root) {
       const ctr = views ? (clicks / views) * 100 : 0;
       const cvr = clicks ? (totalUnitsSold / clicks) * 100 : 0;
 
-      const assistPct = totalUnitsSold
-        ? (indirectUnits / totalUnitsSold) * 100
-        : 0;
-
       return {
         Keyword: r.Query,
         Views: views,
@@ -41,13 +36,11 @@ function renderWasteReport(data, root) {
         "Units Sold": totalUnitsSold,
         Revenue: totalRevenue.toFixed(0),
         ROI: (r.ROI || 0).toFixed(2),
-        "Assist %": assistPct.toFixed(2),
         Action: "Bad",
         _adsSpend: adsSpend,
         _revenue: totalRevenue
       };
     })
-    // 🔒 HARD FILTER (LOCKED)
     .filter(r =>
       r._adsSpend > 0 &&
       r._adsSpend < 100 &&
@@ -63,7 +56,7 @@ function renderWasteReport(data, root) {
 
   card.innerHTML = `
     <div class="report-header">
-      <div>2️⃣ Waste Analysis (Hard Bad Keywords)</div>
+      <div>2️⃣ Waste Analysis</div>
       <span class="toggle-icon">▸</span>
     </div>
     <div class="report-body">
@@ -88,7 +81,7 @@ function renderWasteReport(data, root) {
 
   function renderTable() {
     const c = card.querySelector("#wa-table-container");
-    const rowsToShow = rows.slice(0, visibleCount);
+    const show = rows.slice(0, visibleCount);
 
     if (!rows.length) {
       c.innerHTML = `<p style="text-align:center">🎉 No bad keywords found.</p>`;
@@ -97,22 +90,27 @@ function renderWasteReport(data, root) {
 
     c.innerHTML = `
       <table>
-        <tr>${Object.keys(rowsToShow[0]).filter(k=>!k.startsWith("_"))
+        <tr>${Object.keys(show[0]).filter(k=>!k.startsWith("_"))
           .map(h=>`<th style="text-align:center">${h}</th>`).join("")}</tr>
-        ${rowsToShow.map(r=>`
+        ${show.map(r=>`
           <tr>${Object.keys(r).filter(k=>!k.startsWith("_"))
             .map(k=>`<td style="text-align:center;color:${k==="Action"?"#dc2626":"inherit"}">${r[k]}</td>`).join("")}
           </tr>`).join("")}
       </table>
     `;
 
-    const ctrl = card.querySelector("#wa-controls");
-    ctrl.innerHTML = visibleCount >= rows.length
-      ? `<button onclick="(${exportCSV.toString()})()">Export CSV</button>`
-      : `<button onclick="visibleCount+=25;renderTable()">Show More</button>
-         <button onclick="(${exportCSV.toString()})()">Export CSV</button>`;
+    card.querySelector("#wa-controls").innerHTML = `
+      <button onclick="visibleCount+=25;renderTable()">Show More</button>
+      <button onclick="exportCSV()">Export CSV</button>
+    `;
   }
 
   renderTable();
+
+  // ✅ RESTORED EXPAND / COLLAPSE
+  card.querySelector(".report-header").onclick = function () {
+    toggleByHeader(this);
+  };
+
   root.appendChild(card);
 }
