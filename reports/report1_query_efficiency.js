@@ -29,55 +29,50 @@ function renderQueryEfficiency(data, root) {
       ? (r["Indirect Revenue"] / totalRevenue) * 100
       : 0;
 
-    // ===== DEFAULT =====
+    // ===== Remarks Logic (LOCKED) =====
     let remarks = "Still Safe";
-    let color = "#f59e0b"; // Amber
+    let color = "#f59e0b";
 
-    // 🔒 RULE 0 — ZERO SPEND OVERRIDE (TOP PRIORITY)
     if (adsSpend === 0) {
       remarks = "Still Safe";
       color = "#f59e0b";
     }
-    // 🔴 RULE 1 — ONLY NEGATIVE CASE
     else if (adsSpend > 0 && adsSpend < 100 && totalRevenue === 0) {
       remarks = "Negative";
-      color = "#dc2626"; // Red
+      color = "#dc2626";
     }
-    // 🟢 RULE 2 — GOOD
     else if (r.ROI > 7) {
       remarks = "Good";
-      color = "#16a34a"; // Green
+      color = "#16a34a";
     }
-    // 🟠 RULE 3 — REVIEW
     else if (
       ctr < summaryCTR * 0.5 ||
       cvr < summaryCVR * 0.5
     ) {
       remarks = "Review";
-      color = "#f59e0b"; // Amber
+      color = "#f59e0b";
     }
 
     return {
-      keyword: r.Query,
-      views: r.Views || 0,
-      clicks: r.Clicks || 0,
-      ctr,
-      cvr,
-      avgBid: r["Average CPC"] || 0,
-      adsSpend,
-      totalUnitsSold,
-      totalRevenue,
-      assistPct,
-      roi: r.ROI || 0,
-      remarks,
-      color
+      Keyword: r.Query,
+      Views: r.Views || 0,
+      Clicks: r.Clicks || 0,
+      "CTR %": ctr.toFixed(2),
+      "CVR %": cvr.toFixed(2),
+      "Average Bid": (r["Average CPC"] || 0).toFixed(2),
+      "Ads Spend": adsSpend.toFixed(0),
+      "Total Units Sold": totalUnitsSold,
+      "Total Revenue": totalRevenue.toFixed(0),
+      "Assist %": assistPct.toFixed(2),
+      ROI: (r.ROI || 0).toFixed(2),
+      Remarks: remarks,
+      _color: color
     };
   });
 
-  // ===== Sort: Views High → Low =====
-  rows.sort((a, b) => b.views - a.views);
+  // ===== Sort =====
+  rows.sort((a, b) => b.Views - a.Views);
 
-  // ===== Pagination =====
   let visibleCount = 25;
 
   const card = document.createElement("div");
@@ -95,6 +90,22 @@ function renderQueryEfficiency(data, root) {
     </div>
   `;
 
+  // ===== EXPORT FUNCTION =====
+  function exportExcel() {
+    const headers = Object.keys(rows[0]).filter(k => k !== "_color");
+    const csv = [
+      headers.join(","),
+      ...rows.map(r => headers.map(h => r[h]).join(","))
+    ].join("\n");
+
+    const blob = new Blob([csv], { type: "application/vnd.ms-excel" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "Query_Performance_Efficiency.xlsx";
+    link.click();
+  }
+
+  // ===== Render Table =====
   function renderTable() {
     const container = card.querySelector("#qp-table-container");
     const displayRows = rows.slice(0, visibleCount);
@@ -102,38 +113,19 @@ function renderQueryEfficiency(data, root) {
     container.innerHTML = `
       <table>
         <tr>
-          <th style="text-align:center">Keyword</th>
-          <th style="text-align:center">Views</th>
-          <th style="text-align:center">Clicks</th>
-          <th style="text-align:center">CTR %</th>
-          <th style="text-align:center">CVR %</th>
-          <th style="text-align:center">Average Bid</th>
-          <th style="text-align:center">Ads Spend</th>
-          <th style="text-align:center">Total Units Sold</th>
-          <th style="text-align:center">Total Revenue</th>
-          <th style="text-align:center">Assist %</th>
-          <th style="text-align:center">ROI</th>
-          <th style="text-align:center">Remarks</th>
+          ${Object.keys(rows[0])
+            .filter(k => k !== "_color")
+            .map(h => `<th style="text-align:center">${h}</th>`).join("")}
         </tr>
-
         ${displayRows.map(r => `
           <tr>
-            <td style="text-align:center">${r.keyword}</td>
-            <td style="text-align:center">${r.views}</td>
-            <td style="text-align:center">${r.clicks}</td>
-            <td style="text-align:center">${r.ctr.toFixed(2)}%</td>
-            <td style="text-align:center">${r.cvr.toFixed(2)}%</td>
-            <td style="text-align:center">₹${r.avgBid.toFixed(2)}</td>
-            <td style="text-align:center">₹${r.adsSpend.toFixed(0)}</td>
-            <td style="text-align:center">${r.totalUnitsSold}</td>
-            <td style="text-align:center">₹${r.totalRevenue.toFixed(0)}</td>
-            <td style="text-align:center">${r.assistPct.toFixed(2)}%</td>
-            <td style="text-align:center">${r.roi.toFixed(2)}</td>
-            <td style="text-align:center; font-weight:600; color:${r.color}">
-              ${r.remarks}
-            </td>
-          </tr>
-        `).join("")}
+            ${Object.keys(r)
+              .filter(k => k !== "_color")
+              .map(k => `
+                <td style="text-align:center; color:${k === "Remarks" ? r._color : "inherit"}">
+                  ${r[k]}
+                </td>`).join("")}
+          </tr>`).join("")}
       </table>
     `;
 
@@ -143,6 +135,7 @@ function renderQueryEfficiency(data, root) {
       controls.innerHTML = `
         <button id="qp-top">Top 25</button>
         <button id="qp-collapse">Collapse All</button>
+        <button id="qp-export">Export</button>
       `;
 
       controls.querySelector("#qp-top").onclick = () => {
@@ -155,12 +148,21 @@ function renderQueryEfficiency(data, root) {
         card.querySelector(".report-body").style.display = "none";
         card.querySelector(".toggle-icon").textContent = "▸";
       };
+
+      controls.querySelector("#qp-export").onclick = exportExcel;
+
     } else {
-      controls.innerHTML = `<button id="qp-show-more">Show More</button>`;
+      controls.innerHTML = `
+        <button id="qp-show-more">Show More</button>
+        <button id="qp-export">Export</button>
+      `;
+
       controls.querySelector("#qp-show-more").onclick = () => {
         visibleCount += 25;
         renderTable();
       };
+
+      controls.querySelector("#qp-export").onclick = exportExcel;
     }
   }
 
