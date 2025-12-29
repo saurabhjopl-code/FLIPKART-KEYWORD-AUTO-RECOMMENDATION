@@ -1,39 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8" />
-  <title>Flipkart Keyword Analyzer</title>
+  <title>Flipkart Keyword Intelligence</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
 <header>
-  <h1>Flipkart Keyword Auto-Recommendation Tool</h1>
-  <p id="reportPeriod">Report Period: —</p>
+  <h1>Flipkart Keyword Intelligence</h1>
+  <p id="reportPeriod"></p>
 </header>
 
-<section class="upload">
-  <input type="file" id="csvFile" accept=".csv" />
-</section>
+<input type="file" id="csvFile" accept=".csv" />
 
-<section>
-  <table id="resultTable">
-    <thead>
-      <tr>
-        <th>Query</th>
-        <th>Clicks</th>
-        <th>Direct CVR %</th>
-        <th>ROI</th>
-        <th>Rule Triggered</th>
-        <th>Recommendation</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</section>
+<div id="reports"></div>
 
 <script src="utils.js"></script>
 <script src="rules.js"></script>
+
+<script src="reports/report1_query_efficiency.js"></script>
+<script src="reports/report2_waste.js"></script>
+<script src="reports/report3_assisted.js"></script>
+<script src="reports/report4_scale.js"></script>
+<script src="reports/report5_funnel.js"></script>
+<script src="reports/report6_bidding.js"></script>
+<script src="reports/report7_campaign.js"></script>
+<script src="reports/report8_maturity.js"></script>
+<script src="reports/report9_revenue_quality.js"></script>
+<script src="reports/report10_scorecard.js"></script>
+
 <script src="app.js"></script>
 
 </body>
