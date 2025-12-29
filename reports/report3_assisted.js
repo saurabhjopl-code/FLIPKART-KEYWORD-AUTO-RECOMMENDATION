@@ -1,25 +1,28 @@
 function renderAssistedReport(data, root) {
 
-  // ===== BUILD + FILTER ROWS =====
+  // ===== BUILD + FILTER ROWS (HARD RULE) =====
   let rows = data
     .map(r => {
 
       const views = r.Views || 0;
       const clicks = r.Clicks || 0;
-      const adsSpend = r["SUM(cost)"] || 0;
 
       const directUnits = r[" Direct Units Sold"] || 0;
       const indirectUnits = r["Indirect Units Sold"] || 0;
 
       const directRevenue = r["Direct Revenue"] || 0;
+      const indirectRevenue = r["Indirect Revenue"] || 0;
 
       const ctr = views ? (clicks / views) * 100 : 0;
-      const cvr = clicks ? ((directUnits + indirectUnits) / clicks) * 100 : 0;
+      const cvr = clicks
+        ? ((directUnits + indirectUnits) / clicks) * 100
+        : 0;
 
-      const assistPct =
-        (directUnits + indirectUnits) > 0
-          ? (indirectUnits / (directUnits + indirectUnits)) * 100
-          : 0;
+      const totalUnits = directUnits + indirectUnits;
+
+      const assistPct = totalUnits > 0
+        ? (indirectUnits / totalUnits) * 100
+        : 0;
 
       // ===== REMARKS LOGIC =====
       let remarks = "No Assist";
@@ -28,10 +31,12 @@ function renderAssistedReport(data, root) {
       if (assistPct > 50) {
         remarks = "Heavy Assist";
         color = "#16a34a"; // Green
-      } else if (assistPct > 30) {
+      }
+      else if (assistPct > 30) {
         remarks = "Mid Assist";
         color = "#f59e0b"; // Amber
-      } else if (assistPct > 0) {
+      }
+      else if (assistPct > 0) {
         remarks = "Low Assist";
         color = "#fb923c"; // Orange
       }
@@ -47,12 +52,11 @@ function renderAssistedReport(data, root) {
         "Assist %": assistPct.toFixed(2),
         Remarks: remarks,
         _color: color,
-        _adsSpend: adsSpend,
-        _directRevenue: directRevenue
+        _indirectRevenue: indirectRevenue
       };
     })
-    // 🔒 FILTER: NO DIRECT REVENUE + SPEND > 0
-    .filter(r => r._directRevenue === 0 && r._adsSpend > 0);
+    // 🔒 HARD FILTER: INDIRECT REVENUE > 0
+    .filter(r => r._indirectRevenue > 0);
 
   // ===== SORT: HIGHEST ASSIST % FIRST =====
   rows.sort((a, b) => b["Assist %"] - a["Assist %"]);
