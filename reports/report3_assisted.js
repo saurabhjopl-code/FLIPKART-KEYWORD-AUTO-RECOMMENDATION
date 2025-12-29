@@ -8,16 +8,22 @@ function renderAssistedReport(data, root) {
     </div>
     <div class="report-body">
       <table>
-        <tr><th>Query</th><th>Indirect Share %</th></tr>
+        <tr>
+          <th>Query</th><th>Clicks</th>
+          <th>Direct Revenue</th>
+          <th>Indirect Revenue</th>
+          <th>Indirect Share (%)</th>
+        </tr>
         ${data.map(r => `
           <tr>
             <td>${r.Query}</td>
-            <td>${indirectShare(r).toFixed(2)}</td>
+            <td>${r.Clicks}</td>
+            <td>₹${r["Direct Revenue"]}</td>
+            <td>₹${r["Indirect Revenue"]}</td>
+            <td>${indirectShare(r).toFixed(2)}%</td>
           </tr>`).join("")}
       </table>
     </div>`;
-  c.querySelector(".report-header").onclick = function () {
-    toggleByHeader(this);
-  };
+  c.querySelector(".report-header").onclick = function () { toggleByHeader(this); };
   root.appendChild(c);
 }
