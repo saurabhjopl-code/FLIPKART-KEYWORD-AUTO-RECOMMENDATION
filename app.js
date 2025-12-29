@@ -18,30 +18,26 @@ function loadCSV(text) {
     return o;
   });
 
-  const campaignSet = new Map();
-  rows.forEach(r => {
-    campaignSet.set(`${r["Campaign Name"]} (${r["Campaign ID"]})`, true);
-  });
+  const campaignSet = new Set(
+    rows.map(r => `${r["Campaign Name"]} (${r["Campaign ID"]})`)
+  );
 
   document.getElementById("campaignInfo").innerText =
     campaignSet.size === 1
-      ? `Campaign: ${[...campaignSet.keys()][0]}`
+      ? `Campaign: ${[...campaignSet][0]}`
       : "Campaign: Multiple Campaigns";
 
   const root = document.getElementById("reports");
   root.innerHTML = "";
 
   [
+    renderCampaignSummary,
     renderQueryEfficiency,
     renderWasteReport,
     renderAssistedReport,
     renderScaleReport,
-    renderFunnelReport,
     renderBiddingReport,
-    renderCampaignReport,
-    renderMaturityReport,
-    renderRevenueQualityReport,
-    renderScorecard
+    renderMaturityReport
   ].forEach(fn => fn(rows, root));
 
   setTimeout(() => {
