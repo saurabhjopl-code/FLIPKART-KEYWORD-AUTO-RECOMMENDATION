@@ -1,13 +1,16 @@
-function renderScaleReport(data, root){
-  const rows=data.filter(r=>r.ROI>=4 && directCVR(r)>=4);
-  const c=document.createElement("div");
-  c.className="report-card";
-  c.innerHTML=`
-    <div class="report-header">4️⃣ Scale Opportunities</div>
+function renderScaleReport(data, root) {
+  const rows = data.filter(r => r.ROI >= 4 && directCVR(r) >= 4);
+  const c = document.createElement("div");
+  c.className = "report-card";
+  c.innerHTML = `
+    <div class="report-header">
+      <div>4️⃣ Scale Opportunities</div>
+      <span class="toggle-icon">▸</span>
+    </div>
     <div class="report-body">
       <table>
         <tr><th>Query</th><th>ROI</th><th>CVR</th></tr>
-        ${rows.map(r=>`
+        ${rows.map(r => `
           <tr>
             <td>${r.Query}</td>
             <td>${r.ROI}</td>
@@ -15,7 +18,8 @@ function renderScaleReport(data, root){
           </tr>`).join("")}
       </table>
     </div>`;
-  c.querySelector(".report-header").onclick=()=>toggle(c);
+  c.querySelector(".report-header").onclick = function () {
+    toggleByHeader(this);
+  };
   root.appendChild(c);
 }
-
