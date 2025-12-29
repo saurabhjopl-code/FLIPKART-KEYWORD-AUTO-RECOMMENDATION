@@ -47,26 +47,26 @@ function renderCampaignSummary(data, root) {
     <div class="report-body">
       <table>
         <tr>
-          <th>Views</th>
-          <th>Clicks</th>
-          <th>Ads Spend</th>
-          <th>Average CPC</th>
-          <th>Total Units Sold</th>
-          <th>Total Revenue</th>
-          <th>CTR (Click Through Rate)</th>
-          <th>CVR (Conversion Rate)</th>
-          <th>ROI</th>
+          <th style="text-align:center">Views</th>
+          <th style="text-align:center">Clicks</th>
+          <th style="text-align:center">CTR (Click Through Rate)</th>
+          <th style="text-align:center">CVR (Conversion Rate)</th>
+          <th style="text-align:center">Average CPC</th>
+          <th style="text-align:center">Ads Spend</th>
+          <th style="text-align:center">Total Units Sold</th>
+          <th style="text-align:center">Total Revenue</th>
+          <th style="text-align:center">ROI</th>
         </tr>
         <tr>
-          <td>${totalViews}</td>
-          <td>${totalClicks}</td>
-          <td>₹${adsSpend.toFixed(0)}</td>
-          <td>₹${avgCPC.toFixed(2)}</td>
-          <td>${totalUnitsSold}</td>
-          <td>₹${totalRevenue.toFixed(0)}</td>
-          <td>${ctr.toFixed(2)}%</td>
-          <td>${cvr.toFixed(2)}%</td>
-          <td>${roi.toFixed(2)}</td>
+          <td style="text-align:center">${totalViews}</td>
+          <td style="text-align:center">${totalClicks}</td>
+          <td style="text-align:center">${ctr.toFixed(2)}%</td>
+          <td style="text-align:center">${cvr.toFixed(2)}%</td>
+          <td style="text-align:center">₹${avgCPC.toFixed(2)}</td>
+          <td style="text-align:center">₹${adsSpend.toFixed(0)}</td>
+          <td style="text-align:center">${totalUnitsSold}</td>
+          <td style="text-align:center">₹${totalRevenue.toFixed(0)}</td>
+          <td style="text-align:center">${roi.toFixed(2)}</td>
         </tr>
       </table>
     </div>
