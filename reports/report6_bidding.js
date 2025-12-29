@@ -1,4 +1,6 @@
 function renderBiddingReport(data, root) {
+  const TARGET_MARGIN = 0.3;
+
   const c = document.createElement("div");
   c.className = "report-card";
   c.innerHTML = `
@@ -8,17 +10,27 @@ function renderBiddingReport(data, root) {
     </div>
     <div class="report-body">
       <table>
-        <tr><th>Query</th><th>Avg CPC</th><th>RPC</th></tr>
-        ${data.map(r => `
+        <tr>
+          <th>Query</th>
+          <th>Avg CPC</th>
+          <th>Break-even CPC</th>
+          <th>Status</th>
+        </tr>
+        ${data.map(r => {
+          const bec = r.Clicks
+            ? (r["Direct Revenue"] * TARGET_MARGIN) / r.Clicks
+            : 0;
+          const over = r["Average CPC"] > bec;
+          return `
           <tr>
             <td>${r.Query}</td>
-            <td>${r["Average CPC"]}</td>
-            <td>${rpc(r).toFixed(2)}</td>
-          </tr>`).join("")}
+            <td>₹${r["Average CPC"]}</td>
+            <td>₹${bec.toFixed(2)}</td>
+            <td>${over ? "❌ Overbid" : "✅ Safe"}</td>
+          </tr>`;
+        }).join("")}
       </table>
     </div>`;
-  c.querySelector(".report-header").onclick = function () {
-    toggleByHeader(this);
-  };
+  c.querySelector(".report-header").onclick = function () { toggleByHeader(this); };
   root.appendChild(c);
 }
