@@ -14,6 +14,8 @@ function renderQueryEfficiency(data, root) {
   // ===== Prepare Rows =====
   let rows = data.map(r => {
 
+    const adsSpend = r["SUM(cost)"] || 0;
+
     const totalUnitsSold =
       (r[" Direct Units Sold"] || 0) + (r["Indirect Units Sold"] || 0);
 
@@ -27,21 +29,26 @@ function renderQueryEfficiency(data, root) {
       ? (r["Indirect Revenue"] / totalRevenue) * 100
       : 0;
 
-    // ===== DEFAULT STATE =====
+    // ===== DEFAULT =====
     let remarks = "Still Safe";
     let color = "#f59e0b"; // Amber
 
-    // 🔴 HARD NEGATIVE (ONLY THIS CONDITION)
-    if (r["SUM(cost)"] < 100 && totalRevenue === 0) {
+    // 🔒 RULE 0 — ZERO SPEND OVERRIDE (TOP PRIORITY)
+    if (adsSpend === 0) {
+      remarks = "Still Safe";
+      color = "#f59e0b";
+    }
+    // 🔴 RULE 1 — ONLY NEGATIVE CASE
+    else if (adsSpend > 0 && adsSpend < 100 && totalRevenue === 0) {
       remarks = "Negative";
       color = "#dc2626"; // Red
     }
-    // 🟢 GOOD
+    // 🟢 RULE 2 — GOOD
     else if (r.ROI > 7) {
       remarks = "Good";
       color = "#16a34a"; // Green
     }
-    // 🟠 REVIEW
+    // 🟠 RULE 3 — REVIEW
     else if (
       ctr < summaryCTR * 0.5 ||
       cvr < summaryCVR * 0.5
@@ -57,7 +64,7 @@ function renderQueryEfficiency(data, root) {
       ctr,
       cvr,
       avgBid: r["Average CPC"] || 0,
-      adsSpend: r["SUM(cost)"] || 0,
+      adsSpend,
       totalUnitsSold,
       totalRevenue,
       assistPct,
