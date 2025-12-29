@@ -1,1 +1,21 @@
+function renderScaleReport(data, root){
+  const rows=data.filter(r=>r.ROI>=4 && directCVR(r)>=4);
+  const c=document.createElement("div");
+  c.className="report-card";
+  c.innerHTML=`
+    <div class="report-header">4️⃣ Scale Opportunities</div>
+    <div class="report-body">
+      <table>
+        <tr><th>Query</th><th>ROI</th><th>CVR</th></tr>
+        ${rows.map(r=>`
+          <tr>
+            <td>${r.Query}</td>
+            <td>${r.ROI}</td>
+            <td>${directCVR(r).toFixed(2)}</td>
+          </tr>`).join("")}
+      </table>
+    </div>`;
+  c.querySelector(".report-header").onclick=()=>toggle(c);
+  root.appendChild(c);
+}
 
