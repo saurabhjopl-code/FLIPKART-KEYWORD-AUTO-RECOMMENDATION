@@ -27,20 +27,20 @@ function renderQueryEfficiency(data, root) {
       ? (r["Indirect Revenue"] / totalRevenue) * 100
       : 0;
 
-    let remarks = "Review";
-    let color = "#f59e0b"; // Amber
+    let remarks = "Still Safe";
+    let color = "#f59e0b"; // Amber default
 
-    // 🚨 HARD NEGATIVE (highest priority)
+    // 🔴 HARD NEGATIVE (ONLY THIS CASE)
     if (r["SUM(cost)"] < 100 && totalRevenue === 0) {
       remarks = "Negative";
       color = "#dc2626"; // Red
     }
-    // ✅ GOOD
+    // 🟢 GOOD
     else if (r.ROI > 7) {
       remarks = "Good";
       color = "#16a34a"; // Green
     }
-    // ⚠️ REVIEW (ANY ONE below 50%)
+    // 🟠 REVIEW (ANY ONE BELOW 50%)
     else if (
       ctr < summaryCTR * 0.5 ||
       cvr < summaryCVR * 0.5
@@ -84,14 +84,11 @@ function renderQueryEfficiency(data, root) {
 
     <div class="report-body">
       <div id="qp-table-container"></div>
-
-      <div id="qp-controls" style="text-align:center; margin-top:12px;">
-        <button id="qp-show-more">Show More</button>
-      </div>
+      <div id="qp-controls" style="text-align:center; margin-top:12px;"></div>
     </div>
   `;
 
-  // ===== Render Table Function =====
+  // ===== Render Table =====
   function renderTable() {
     const container = card.querySelector("#qp-table-container");
     const displayRows = rows.slice(0, visibleCount);
@@ -136,7 +133,6 @@ function renderQueryEfficiency(data, root) {
 
     const controls = card.querySelector("#qp-controls");
 
-    // End-of-list controls
     if (visibleCount >= rows.length) {
       controls.innerHTML = `
         <button id="qp-top">Top 25</button>
@@ -162,10 +158,8 @@ function renderQueryEfficiency(data, root) {
     }
   }
 
-  // Initial render
   renderTable();
 
-  // Expand / collapse wiring
   card.querySelector(".report-header").onclick = function () {
     toggleByHeader(this);
   };
