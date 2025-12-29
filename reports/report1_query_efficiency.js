@@ -1,8 +1,9 @@
 function renderQueryEfficiency(data, root) {
 
-  // ---------- SUMMARY BENCHMARKS (from Campaign Summary logic) ----------
+  // ===== Campaign Summary Benchmarks =====
   const totalViews = data.reduce((a, b) => a + (b.Views || 0), 0);
   const totalClicks = data.reduce((a, b) => a + (b.Clicks || 0), 0);
+
   const totalUnits =
     data.reduce((a, b) => a + (b[" Direct Units Sold"] || 0), 0) +
     data.reduce((a, b) => a + (b["Indirect Units Sold"] || 0), 0);
@@ -10,8 +11,9 @@ function renderQueryEfficiency(data, root) {
   const summaryCTR = totalViews ? (totalClicks / totalViews) * 100 : 0;
   const summaryCVR = totalClicks ? (totalUnits / totalClicks) * 100 : 0;
 
-  // ---------- PREPARE ROWS ----------
+  // ===== Prepare Rows =====
   const rows = data.map(r => {
+
     const totalUnitsSold =
       (r[" Direct Units Sold"] || 0) + (r["Indirect Units Sold"] || 0);
 
@@ -25,24 +27,26 @@ function renderQueryEfficiency(data, root) {
       ? (r["Indirect Revenue"] / totalRevenue) * 100
       : 0;
 
-    let remarks = "Good";
+    let remarks = "Review";
+    let color = "#f59e0b"; // Amber (default)
 
-    // Rule 1: Low spend + zero revenue
+    // 🚨 HARD NEGATIVE RULE (OVERRIDES EVERYTHING)
     if (r["SUM(cost)"] < 100 && totalRevenue === 0) {
       remarks = "Negative";
+      color = "#dc2626"; // Red
     }
-
-    // Rule 2: CTR / CVR below 50% of summary benchmark
-    if (
+    // ✅ GOOD RULE
+    else if (r.ROI > 7) {
+      remarks = "Good";
+      color = "#16a34a"; // Green
+    }
+    // ⚠️ REVIEW RULE (ANY ONE BELOW 50%)
+    else if (
       ctr < summaryCTR * 0.5 ||
       cvr < summaryCVR * 0.5
     ) {
       remarks = "Review";
-    }
-
-    // Rule 3: ROI below 7
-    if (r.ROI < 7) {
-      remarks = "Review";
+      color = "#f59e0b"; // Amber
     }
 
     return {
@@ -51,19 +55,21 @@ function renderQueryEfficiency(data, root) {
       clicks: r.Clicks || 0,
       ctr,
       cvr,
+      avgBid: r["Average CPC"] || 0,
       adsSpend: r["SUM(cost)"] || 0,
       totalUnitsSold,
       totalRevenue,
       assistPct,
       roi: r.ROI || 0,
-      remarks
+      remarks,
+      color
     };
   });
 
-  // ---------- SORT: Views High → Low ----------
+  // ===== Sort: Views High → Low =====
   rows.sort((a, b) => b.views - a.views);
 
-  // ---------- RENDER ----------
+  // ===== Render =====
   const card = document.createElement("div");
   card.className = "report-card";
 
@@ -81,6 +87,7 @@ function renderQueryEfficiency(data, root) {
           <th style="text-align:center">Clicks</th>
           <th style="text-align:center">CTR %</th>
           <th style="text-align:center">CVR %</th>
+          <th style="text-align:center">Average Bid</th>
           <th style="text-align:center">Ads Spend</th>
           <th style="text-align:center">Total Units Sold</th>
           <th style="text-align:center">Total Revenue</th>
@@ -96,12 +103,15 @@ function renderQueryEfficiency(data, root) {
             <td style="text-align:center">${r.clicks}</td>
             <td style="text-align:center">${r.ctr.toFixed(2)}%</td>
             <td style="text-align:center">${r.cvr.toFixed(2)}%</td>
+            <td style="text-align:center">₹${r.avgBid.toFixed(2)}</td>
             <td style="text-align:center">₹${r.adsSpend.toFixed(0)}</td>
             <td style="text-align:center">${r.totalUnitsSold}</td>
             <td style="text-align:center">₹${r.totalRevenue.toFixed(0)}</td>
             <td style="text-align:center">${r.assistPct.toFixed(2)}%</td>
             <td style="text-align:center">${r.roi.toFixed(2)}</td>
-            <td style="text-align:center">${r.remarks}</td>
+            <td style="text-align:center; font-weight:600; color:${r.color}">
+              ${r.remarks}
+            </td>
           </tr>
         `).join("")}
       </table>
