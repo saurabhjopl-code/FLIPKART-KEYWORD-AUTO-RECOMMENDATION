@@ -27,10 +27,11 @@ function renderQueryEfficiency(data, root) {
       ? (r["Indirect Revenue"] / totalRevenue) * 100
       : 0;
 
+    // ===== DEFAULT STATE =====
     let remarks = "Still Safe";
-    let color = "#f59e0b"; // Amber default
+    let color = "#f59e0b"; // Amber
 
-    // 🔴 HARD NEGATIVE (ONLY THIS CASE)
+    // 🔴 HARD NEGATIVE (ONLY THIS CONDITION)
     if (r["SUM(cost)"] < 100 && totalRevenue === 0) {
       remarks = "Negative";
       color = "#dc2626"; // Red
@@ -40,7 +41,7 @@ function renderQueryEfficiency(data, root) {
       remarks = "Good";
       color = "#16a34a"; // Green
     }
-    // 🟠 REVIEW (ANY ONE BELOW 50%)
+    // 🟠 REVIEW
     else if (
       ctr < summaryCTR * 0.5 ||
       cvr < summaryCVR * 0.5
@@ -69,10 +70,9 @@ function renderQueryEfficiency(data, root) {
   // ===== Sort: Views High → Low =====
   rows.sort((a, b) => b.views - a.views);
 
-  // ===== Pagination State =====
+  // ===== Pagination =====
   let visibleCount = 25;
 
-  // ===== Render Card =====
   const card = document.createElement("div");
   card.className = "report-card";
 
@@ -88,7 +88,6 @@ function renderQueryEfficiency(data, root) {
     </div>
   `;
 
-  // ===== Render Table =====
   function renderTable() {
     const container = card.querySelector("#qp-table-container");
     const displayRows = rows.slice(0, visibleCount);
