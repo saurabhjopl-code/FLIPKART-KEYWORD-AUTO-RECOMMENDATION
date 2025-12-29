@@ -1,16 +1,20 @@
-header {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-#reportPeriod {
-  font-size: 14px;
-  color: #374151;
-}
-
-#campaignInfo {
-  font-size: 14px;
+.report-header {
+  padding: 14px 16px;
   font-weight: 600;
-  color: #1f2937;
-  margin-top: 4px;
+  cursor: pointer;
+  background: #eef2ff;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.report-header span {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.report-body {
+  display: none;
+  padding: 16px;
 }
