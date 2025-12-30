@@ -1,72 +1,93 @@
-body {
-  font-family: Inter, Arial, sans-serif;
-  background: #f5f7fb;
-  padding: 20px;
-}
+/* ===============================
+   UI POLISH – v12.30 (SAFE)
+   =============================== */
 
-header {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-#reportPeriod {
-  font-size: 14px;
-  color: #374151;
-}
-
-#campaignInfo {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-input {
-  margin-bottom: 20px;
-}
-
+/* Report Cards */
 .report-card {
   background: #ffffff;
-  border-radius: 10px;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s ease;
 }
 
+.report-card:hover {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+/* Report Header */
 .report-header {
-  padding: 14px 16px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  background: #eef2ff;
-  border-radius: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.report-header:hover {
-  background: #e0e7ff;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .toggle-icon {
   font-size: 16px;
-  opacity: 0.7;
+  color: #6b7280;
 }
 
-.report-body {
-  display: none;
-  padding: 16px;
-}
-
+/* Tables */
 table {
   width: 100%;
   border-collapse: collapse;
-}
-
-th, td {
-  border: 1px solid #e5e7eb;
-  padding: 8px;
   font-size: 13px;
+  margin-top: 10px;
 }
 
 th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #374151;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+td, th {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+tr:nth-child(even) {
   background: #f9fafb;
 }
+
+tr:hover {
+  background: #eef2ff;
+}
+
+/* Buttons */
+button {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  margin: 4px;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Status colors (already used, just refined) */
+.green { color: #16a34a; }
+.red { color: #dc2626; }
+.amber { color: #f59e0b; }
+.purple { color: #7c3aed; }
+.blue { color: #2563eb; }
