@@ -1,6 +1,11 @@
-function renderQueryMaturityReport(data, root) {
+/* =========================================================
+   REPORT 8 – QUERY MATURITY
+   Safe-wired version (no loader change required)
+   ========================================================= */
 
-  // ===== HEADER-AGNOSTIC VALUE RESOLVER =====
+function _renderReport8Maturity(data, root) {
+
+  // ---------- Header-agnostic value resolver ----------
   function getValueByContains(row, text) {
     const key = Object.keys(row).find(k =>
       k.replace(/\s+/g, " ")
@@ -11,7 +16,7 @@ function renderQueryMaturityReport(data, root) {
     return key ? Number(row[key]) || 0 : 0;
   }
 
-  // ===== BUILD MATURITY ROWS =====
+  // ---------- Build maturity rows ----------
   let rows = data
     .map(r => {
 
@@ -31,17 +36,18 @@ function renderQueryMaturityReport(data, root) {
       let stage = "New";
       let color = "#2563eb"; // Blue
 
+      // Order matters
       if (clicks >= 50 && cvr < 1) {
         stage = "Declining";
-        color = "#dc2626"; // Red
+        color = "#dc2626";
       }
       else if (clicks >= 50 && cvr >= 3 && revenue >= 5000) {
         stage = "Mature";
-        color = "#7c3aed"; // Purple
+        color = "#7c3aed";
       }
       else if (clicks >= 30 && cvr >= 2) {
         stage = "Growing";
-        color = "#16a34a"; // Green
+        color = "#16a34a";
       }
 
       return {
@@ -56,7 +62,7 @@ function renderQueryMaturityReport(data, root) {
     })
     .filter(Boolean);
 
-  // Sort: Mature → Growing → New → Declining (business-friendly view)
+  // Sort for readability
   const order = { "Mature": 1, "Growing": 2, "New": 3, "Declining": 4 };
   rows.sort((a, b) => order[a["Maturity Stage"]] - order[b["Maturity Stage"]]);
 
@@ -72,12 +78,12 @@ function renderQueryMaturityReport(data, root) {
     </div>
 
     <div class="report-body">
-      <div id="qm-table-container"></div>
+      <div id="qm-table"></div>
       <div id="qm-controls" style="text-align:center;margin-top:12px;"></div>
     </div>
   `;
 
-  // ===== CSV EXPORT =====
+  // ---------- CSV Export ----------
   function exportCSV() {
     if (!rows.length) return;
     const headers = Object.keys(rows[0]).filter(k => !k.startsWith("_"));
@@ -93,9 +99,9 @@ function renderQueryMaturityReport(data, root) {
     link.click();
   }
 
-  // ===== RENDER TABLE =====
+  // ---------- Render ----------
   function renderTable() {
-    const c = card.querySelector("#qm-table-container");
+    const c = card.querySelector("#qm-table");
     const show = rows.slice(0, visibleCount);
 
     if (!rows.length) {
@@ -116,26 +122,42 @@ function renderQueryMaturityReport(data, root) {
             ${Object.keys(r)
               .filter(k => !k.startsWith("_"))
               .map(k => `
-                <td style="text-align:center;color:${k==="Maturity Stage"?r._color:"inherit"}">
+                <td style="text-align:center;color:${k === "Maturity Stage" ? r._color : "inherit"}">
                   ${r[k]}
                 </td>`).join("")}
           </tr>`).join("")}
       </table>
     `;
 
-    const ctrl = card.querySelector("#qm-controls");
-    ctrl.innerHTML = visibleCount >= rows.length
-      ? `<button onclick="exportCSV()">Export CSV</button>`
-      : `<button onclick="visibleCount+=25;renderTable()">Show More</button>
-         <button onclick="exportCSV()">Export CSV</button>`;
+    card.querySelector("#qm-controls").innerHTML =
+      visibleCount >= rows.length
+        ? `<button onclick="exportCSV()">Export CSV</button>`
+        : `<button onclick="visibleCount+=25;renderTable()">Show More</button>
+           <button onclick="exportCSV()">Export CSV</button>`;
   }
 
   renderTable();
 
-  // ✅ Expand / Collapse
+  // Expand / collapse
   card.querySelector(".report-header").onclick = function () {
     toggleByHeader(this);
   };
 
   root.appendChild(card);
+}
+
+/* =========================================================
+   SAFE ALIASES — DO NOT REMOVE
+   ========================================================= */
+
+function renderQueryMaturityReport(data, root) {
+  _renderReport8Maturity(data, root);
+}
+
+function renderMaturityReport(data, root) {
+  _renderReport8Maturity(data, root);
+}
+
+function renderReport8(data, root) {
+  _renderReport8Maturity(data, root);
 }
